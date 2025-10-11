@@ -49,7 +49,7 @@ export function AppSidebar() {
             <Wrench className="h-6 w-6 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-sidebar-foreground">Taller Pro</h2>
+            <h2 className="text-lg font-semibold text-sidebar-foreground">Autex Pro</h2>
             <p className="text-xs text-muted-foreground">Sistema de Gestión</p>
           </div>
         </div>

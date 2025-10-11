@@ -1,114 +1,106 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wrench, Package, FileText, TrendingUp } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client";
 
-export default function DashboardPage() {
+import { useEffect, useState } from "react";
+import {
+  getReparacionesDetalladas,
+  eliminarReparacion,
+  ReparacionDetallada,
+} from "@/lib/services/reparacionesService";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+export default function ReparacionesPage() {
+  const [reparaciones, setReparaciones] = useState<ReparacionDetallada[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    cargarDatos();
+  }, []);
+
+  const cargarDatos = async () => {
+    try {
+      setLoading(true);
+      const data = await getReparacionesDetalladas();
+      setReparaciones(data); // ✅ Ahora coincide el tipo
+    } catch (err) {
+      console.error(err);
+      setError("Error al cargar los datos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEliminar = async (id: number) => {
+    if (!confirm("¿Deseas eliminar esta reparación?")) return;
+    try {
+      await eliminarReparacion(id);
+      setReparaciones((prev) => prev.filter((r) => r.idOrdenTrabajo !== id));
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar la reparación");
+    }
+  };
+
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container flex h-16 items-center px-6">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-        </div>
-      </header>
+    <div className="p-6">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">Gestión de Reparaciones</CardTitle>
+        </CardHeader>
 
-      <div className="flex-1 space-y-6 p-6">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reparaciones Activas</CardTitle>
-              <Wrench className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-muted-foreground">+2 desde ayer</p>
-            </CardContent>
-          </Card>
+        <CardContent>
+          {loading && <p>Cargando reparaciones...</p>}
+          {error && <p className="text-red-500">{error}</p>}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Artículos en Stock</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">248</div>
-              <p className="text-xs text-muted-foreground">15 por debajo del mínimo</p>
-            </CardContent>
-          </Card>
+          {!loading && reparaciones.length === 0 && <p>No hay reparaciones registradas.</p>}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Servicios del Mes</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">45</div>
-              <p className="text-xs text-muted-foreground">+12% vs mes anterior</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$24,500</div>
-              <p className="text-xs text-muted-foreground">+8% vs mes anterior</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle>Acceso Rápido</CardTitle>
-              <CardDescription>Accede a las funciones principales del sistema</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-3">
-              <Link href="/reparaciones">
-                <Button variant="outline" className="h-24 w-full flex-col gap-2 bg-transparent">
-                  <Wrench className="h-6 w-6" />
-                  <span>Reparaciones</span>
-                </Button>
-              </Link>
-              <Link href="/inventario">
-                <Button variant="outline" className="h-24 w-full flex-col gap-2 bg-transparent">
-                  <Package className="h-6 w-6" />
-                  <span>Inventario</span>
-                </Button>
-              </Link>
-              <Link href="/historial">
-                <Button variant="outline" className="h-24 w-full flex-col gap-2 bg-transparent">
-                  <FileText className="h-6 w-6" />
-                  <span>Historial</span>
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Estado del Sistema</CardTitle>
-              <CardDescription>Información general del taller</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Capacidad</span>
-                <span className="text-sm font-medium">75%</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Técnicos Activos</span>
-                <span className="text-sm font-medium">8/10</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Tiempo Promedio</span>
-                <span className="text-sm font-medium">3.5 días</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+          {!loading && reparaciones.length > 0 && (
+            <div className="overflow-x-auto mt-4">
+              <table className="min-w-full text-sm border border-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th className="border p-2 text-left">ID</th>
+                    <th className="border p-2 text-left">Cliente</th>
+                    <th className="border p-2 text-left">Vehículo</th>
+                    <th className="border p-2 text-left">Descripción</th>
+                    <th className="border p-2 text-left">Costo Final</th>
+                    <th className="border p-2 text-left">Estado</th>
+                    <th className="border p-2 text-left">Fecha Inicio</th>
+                    <th className="border p-2 text-left">Fecha Fin</th>
+                    <th className="border p-2 text-left">Registro</th>
+                    <th className="border p-2 text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reparaciones.map((rep) => (
+                    <tr key={rep.idOrdenTrabajo} className="hover:bg-gray-50">
+                      <td className="border p-2">{rep.idOrdenTrabajo}</td>
+                      <td className="border p-2">{rep.clienteNombre}</td>
+                      <td className="border p-2">{rep.vehiculoDescripcion}</td>
+                      <td className="border p-2">{rep.descripcionOrden}</td>
+                      <td className="border p-2">{rep.costoFinal}</td>
+                      <td className="border p-2">{rep.estadoOrden}</td>
+                      <td className="border p-2">{rep.fechaInicioOrden}</td>
+                      <td className="border p-2">{rep.fechaFinOrden}</td>
+                      <td className="border p-2">{new Date(rep.fechaRegistro).toLocaleString()}</td>
+                      <td className="border p-2 text-center">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleEliminar(rep.idOrdenTrabajo)}
+                        >
+                          Eliminar
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
-  )
+  );
 }
