@@ -37,12 +37,12 @@ const menuItems: MenuItem[] = [
     icon: Wrench,
     roles: ["Administrador", "Recepcionista", "Tecnico", "Cliente"],
   },
-  {
+  /*{
     title: "Inventario",
     url: "/inventario",
     icon: Package,
     roles: ["Administrador", "Recepcionista"],
-  },
+  },*/
   {
     title: "Historial",
     url: "/historial",
