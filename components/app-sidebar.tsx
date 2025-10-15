@@ -1,6 +1,6 @@
 "use client"
 
-import { Wrench, Package, FileText, Home } from "lucide-react"
+import { Wrench, Package, FileText, Home, CarIcon, User2Icon } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -35,6 +35,16 @@ const menuItems = [
     title: "Historial",
     url: "/historial",
     icon: FileText,
+  },
+  {
+    title: "Usuarios",
+    url: "/usuarios/crear",
+    icon: User2Icon,
+  },
+  {
+    title: "Vehiculos",
+    url: "/vehiculos",
+    icon: CarIcon,
   },
 ]
 
