@@ -1,8 +1,9 @@
-"use client"
+"use client";
 
-import { Wrench, Package, FileText, Home, CarIcon, User2Icon } from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { Wrench, Package, FileText, Home, CarIcon, User2Icon, LogOut } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -13,43 +14,70 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarHeader,
-} from "@/components/ui/sidebar"
+  SidebarFooter,
+} from "@/components/ui/sidebar";
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  url: string;
+  icon: any;
+  roles: string[]; // Roles que pueden ver este item
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Dashboard",
     url: "/",
     icon: Home,
+    roles: ["Administrador", "Recepcionista", "Tecnico", "Cliente"],
   },
   {
     title: "Reparaciones",
     url: "/reparaciones",
     icon: Wrench,
+    roles: ["Administrador", "Recepcionista", "Tecnico", "Cliente"],
   },
   {
     title: "Inventario",
     url: "/inventario",
     icon: Package,
+    roles: ["Administrador", "Recepcionista"],
   },
   {
     title: "Historial",
     url: "/historial",
     icon: FileText,
+    roles: ["Administrador", "Recepcionista"],
   },
   {
     title: "Usuarios",
     url: "/usuarios/crear",
     icon: User2Icon,
+    roles: ["Administrador"],
   },
   {
-    title: "Vehiculos",
+    title: "Vehículos",
     url: "/vehiculos",
     icon: CarIcon,
+    roles: ["Administrador", "Recepcionista"],
   },
-]
+];
 
 export function AppSidebar() {
-  const pathname = usePathname()
+  const pathname = usePathname();
+  const router = useRouter();
+  const { usuario, logout } = useAuth();
+
+  // Filtrar items del menú según el rol del usuario
+  const filteredMenuItems = menuItems.filter((item) => {
+    if (!usuario) return false;
+    return item.roles.includes(usuario.rolPrincipal);
+  });
+
+  const handleLogout = () => {
+    logout();
+    router.push("/login");
+  };
 
   return (
     <Sidebar>
@@ -64,12 +92,13 @@ export function AppSidebar() {
           </div>
         </div>
       </SidebarHeader>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Menú Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <Link href={item.url}>
@@ -83,6 +112,26 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        {usuario && (
+          <div className="space-y-3">
+            <div className="px-2">
+              <p className="text-sm font-medium text-sidebar-foreground">
+                {usuario.nombreCompleto}
+              </p>
+              <p className="text-xs text-muted-foreground">{usuario.correoPrincipal}</p>
+              <p className="text-xs text-primary font-semibold mt-1">
+                Rol: {usuario.rolPrincipal}
+              </p>
+            </div>
+            <SidebarMenuButton onClick={handleLogout} className="w-full">
+              <LogOut className="h-4 w-4" />
+              <span>Cerrar Sesión</span>
+            </SidebarMenuButton>
+          </div>
+        )}
+      </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
