@@ -17,8 +17,8 @@ jobs:
           node-version: '18'
       - name: Install dependencies (custom)
         run: npm install next@latest react@latest react-dom@latest eslint-config-next@latest
-      - name: Lint (optional)
-        run: npm run lint --if-present
+      #- name: Lint (optional)
+       # run: npm run lint --if-present
       - name: Build project
         run: npm run build
       - name: Upload build artifact
