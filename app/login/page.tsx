@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,10 +20,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Redirigir si ya está autenticado
+  useEffect(() => {
   if (isAuthenticated) {
     router.push("/");
-    return null;
   }
+}, [isAuthenticated, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

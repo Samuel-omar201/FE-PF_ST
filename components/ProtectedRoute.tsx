@@ -1,41 +1,49 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-//import { useAuth } from "@/contexts/AuthContext";
-import { useAuth } from "@/app/contexts/AuthContext";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
+import { roleAccess } from "@/config/roleAccess";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: string[];
 }
 
-export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, usuario, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
-      // Si no está autenticado, redirigir a login
-      if (!isAuthenticated) {
-        router.push("/login");
-        return;
-      }
+  if (isLoading) return;
 
-      // Si hay roles específicos permitidos, verificar
-      if (allowedRoles && allowedRoles.length > 0 && usuario) {
-        const hasPermission = allowedRoles.includes(usuario.rolPrincipal);
-        
-        if (!hasPermission) {
-          // Redirigir a página de acceso denegado o dashboard
-          router.push("/");
-          return;
-        }
-      }
+  // 1️⃣ Si no está autenticado → al login
+  if (!isAuthenticated) {
+    router.push("/login");
+    return;
+  }
+
+  // 2️⃣ Validar permisos por rol
+  if (usuario?.rolPrincipal) {
+    const rutasPermitidas = roleAccess[usuario.rolPrincipal] || [];
+
+    // 3️⃣ Verifica acceso más preciso
+    const tieneAcceso =
+      rutasPermitidas.includes("*") ||
+      rutasPermitidas.some(
+        (ruta) =>
+          pathname === ruta || // exacta
+          (ruta !== "/" && pathname.startsWith(`${ruta}/`)) // subruta válida
+      );
+
+    if (!tieneAcceso) {
+      router.push("/"); // redirige al dashboard
+      return;
     }
-  }, [isAuthenticated, usuario, isLoading, allowedRoles, router]);
+  }
+}, [isAuthenticated, usuario, isLoading, pathname, router]);
 
-  // Mostrar loading mientras se verifica autenticación
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -47,19 +55,6 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     );
   }
 
-  // Si no está autenticado o no tiene permisos, no mostrar nada (se redirige)
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  // Si hay roles permitidos y no tiene permiso, no mostrar nada
-  if (allowedRoles && allowedRoles.length > 0 && usuario) {
-    const hasPermission = allowedRoles.includes(usuario.rolPrincipal);
-    if (!hasPermission) {
-      return null;
-    }
-  }
-
-  // Si todo está bien, mostrar el contenido
+  if (!isAuthenticated) return null;
   return <>{children}</>;
 }
