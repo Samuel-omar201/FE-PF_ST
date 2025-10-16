@@ -1,10 +1,19 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Wrench, Package, FileText, TrendingUp, Car, Clock, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import {
+  getVehiculosCliente,
+  getReparacionesTecnico,
+  getHistorialCliente,
+  VehiculoCliente,
+  ReparacionTecnico,
+  HistorialServicio,
+} from "@/lib/services/dashboardService";
 
 export default function DashboardPage() {
   const { usuario } = useAuth();
@@ -273,6 +282,49 @@ function DashboardRecepcionista({ usuario }: any) {
 
 // ========== Dashboard para Técnico ==========
 function DashboardTecnico({ usuario }: any) {
+  const [reparaciones, setReparaciones] = useState<ReparacionTecnico[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarDatosTecnico();
+  }, []);
+
+  const cargarDatosTecnico = async () => {
+    try {
+      setLoading(true);
+      
+      const idTecnico = usuario.idTecnico || usuario.ttTecnicoIdTecnico;
+      
+      if (!idTecnico) {
+        console.error("No se encontró ID de técnico");
+        setLoading(false);
+        return;
+      }
+
+      const reparacionesData = await getReparacionesTecnico(idTecnico);
+      setReparaciones(reparacionesData);
+    } catch (error) {
+      console.error("Error cargando datos del técnico:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const trabajosEnProgreso = reparaciones.filter(r => r.progreso > 0 && r.progreso < 100).length;
+  const trabajosPendientes = reparaciones.filter(r => r.progreso === 0).length;
+  const completadosHoy = 2; // Mock
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando tus trabajos...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -293,8 +345,10 @@ function DashboardTecnico({ usuario }: any) {
               <Wrench className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-muted-foreground">3 en progreso, 2 pendientes</p>
+              <div className="text-2xl font-bold">{reparaciones.length}</div>
+              <p className="text-xs text-muted-foreground">
+                {trabajosEnProgreso} en progreso, {trabajosPendientes} pendientes
+              </p>
             </CardContent>
           </Card>
 
@@ -304,7 +358,7 @@ function DashboardTecnico({ usuario }: any) {
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2</div>
+              <div className="text-2xl font-bold">{completadosHoy}</div>
               <p className="text-xs text-muted-foreground">+1 vs ayer</p>
             </CardContent>
           </Card>
@@ -335,26 +389,32 @@ function DashboardTecnico({ usuario }: any) {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
-              <div>
-                <p className="font-medium">Toyota Corolla 2020</p>
-                <p className="text-sm text-muted-foreground">ABC-123 • Cambio de aceite</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-yellow-600">En Progreso</p>
-                <p className="text-xs text-muted-foreground">60% completado</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
-              <div>
-                <p className="font-medium">Honda Civic 2019</p>
-                <p className="text-sm text-muted-foreground">XYZ-789 • Reparación de frenos</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-medium text-blue-600">Pendiente</p>
-                <p className="text-xs text-muted-foreground">Inicio hoy 14:00</p>
-              </div>
-            </div>
+            {reparaciones.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No tienes trabajos asignados actualmente
+              </p>
+            ) : (
+              reparaciones.map((trabajo) => (
+                <div key={trabajo.idOrdenTrabajo} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent">
+                  <div>
+                    <p className="font-medium">{trabajo.vehiculo}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {trabajo.placa} • {trabajo.descripcion}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${
+                      trabajo.progreso > 50 ? 'text-yellow-600' : 
+                      trabajo.progreso > 0 ? 'text-blue-600' : 
+                      'text-gray-600'
+                    }`}>
+                      {trabajo.estado}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{trabajo.progreso}% completado</p>
+                  </div>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </div>
@@ -364,6 +424,51 @@ function DashboardTecnico({ usuario }: any) {
 
 // ========== Dashboard para Cliente ==========
 function DashboardCliente({ usuario }: any) {
+  const [vehiculos, setVehiculos] = useState<VehiculoCliente[]>([]);
+  const [historial, setHistorial] = useState<HistorialServicio[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    cargarDatosCliente();
+  }, []);
+
+  const cargarDatosCliente = async () => {
+    try {
+      setLoading(true);
+      
+      const idCliente = usuario.idCliente || usuario.ttClienteIdCliente;
+      
+      if (!idCliente) {
+        console.error("No se encontró ID de cliente");
+        setLoading(false);
+        return;
+      }
+
+      const [vehiculosData, historialData] = await Promise.all([
+        getVehiculosCliente(idCliente),
+        getHistorialCliente(idCliente),
+      ]);
+
+      setVehiculos(vehiculosData);
+      setHistorial(historialData);
+    } catch (error) {
+      console.error("Error cargando datos del cliente:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Cargando tu información...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -376,56 +481,69 @@ function DashboardCliente({ usuario }: any) {
       </header>
 
       <div className="flex-1 space-y-6 p-6 max-w-5xl mx-auto">
-        {/* Información del cliente */}
+        {/* Estado de vehículos */}
         <Card>
           <CardHeader>
             <CardTitle>Estado de Mis Vehículos</CardTitle>
             <CardDescription>Seguimiento de servicios y reparaciones</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="border rounded-lg p-4 hover:bg-accent">
-              <div className="flex items-start justify-between">
-                <div className="flex gap-3">
-                  <Car className="h-5 w-5 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Toyota Corolla 2020</p>
-                    <p className="text-sm text-muted-foreground">Placa: ABC-123</p>
+            {vehiculos.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No tienes vehículos registrados
+              </p>
+            ) : (
+              vehiculos.map((vehiculo) => (
+                <div key={vehiculo.idVehiculo} className="border rounded-lg p-4 hover:bg-accent">
+                  <div className="flex items-start justify-between">
+                    <div className="flex gap-3">
+                      <Car className="h-5 w-5 mt-1 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">{vehiculo.marca} {vehiculo.modelo}</p>
+                        <p className="text-sm text-muted-foreground">Placa: {vehiculo.placa}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      {vehiculo.estadoReparacion ? (
+                        <>
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800">
+                            {vehiculo.estadoReparacion}
+                          </span>
+                          {vehiculo.diasEstimados !== null && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Estimado: {vehiculo.diasEstimados} día{vehiculo.diasEstimados !== 1 ? 's' : ''}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-green-100 text-green-800">
+                            Sin Servicios
+                          </span>
+                          {vehiculo.ultimoServicio && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Último servicio {vehiculo.ultimoServicio}
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
+                  {vehiculo.servicioActual && (
+                    <div className="mt-3 pl-8">
+                      <p className="text-sm">Servicio: {vehiculo.servicioActual}</p>
+                      {vehiculo.tecnicoAsignado && (
+                        <p className="text-sm text-muted-foreground">Técnico: {vehiculo.tecnicoAsignado}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800">
-                    En Reparación
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1">Estimado: 2 días</p>
-                </div>
-              </div>
-              <div className="mt-3 pl-8">
-                <p className="text-sm">Servicio: Cambio de aceite y filtros</p>
-                <p className="text-sm text-muted-foreground">Técnico: Carlos Méndez</p>
-              </div>
-            </div>
-
-            <div className="border rounded-lg p-4 hover:bg-accent">
-              <div className="flex items-start justify-between">
-                <div className="flex gap-3">
-                  <Car className="h-5 w-5 mt-1 text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Honda Civic 2019</p>
-                    <p className="text-sm text-muted-foreground">Placa: XYZ-789</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-green-100 text-green-800">
-                    Sin Servicios
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1">Último servicio hace 3 meses</p>
-                </div>
-              </div>
-            </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
-        {/* Historial reciente */}
+        {/* Historial */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -439,20 +557,23 @@ function DashboardCliente({ usuario }: any) {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="text-sm font-medium">Cambio de llantas</p>
-                <p className="text-xs text-muted-foreground">Toyota Corolla • 15/01/2025</p>
-              </div>
-              <p className="text-sm font-semibold">$340.00</p>
-            </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="text-sm font-medium">Mantenimiento preventivo</p>
-                <p className="text-xs text-muted-foreground">Honda Civic • 10/12/2024</p>
-              </div>
-              <p className="text-sm font-semibold">$150.00</p>
-            </div>
+            {historial.length === 0 ? (
+              <p className="text-center py-4 text-muted-foreground">
+                No hay historial de servicios
+              </p>
+            ) : (
+              historial.map((servicio) => (
+                <div key={servicio.idFactura} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium">{servicio.servicio}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {servicio.vehiculo} • {new Date(servicio.fecha).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <p className="text-sm font-semibold">${servicio.monto.toFixed(2)}</p>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 
@@ -462,9 +583,11 @@ function DashboardCliente({ usuario }: any) {
             <CardTitle>Información de Contacto</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-sm"><span className="font-medium">Teléfono:</span> (502) 1234-5678</p>
             <p className="text-sm"><span className="font-medium">Email:</span> {usuario.correoPrincipal}</p>
-            <p className="text-sm"><span className="font-medium">Dirección:</span> Zona 10, Ciudad de Guatemala</p>
+            <p className="text-sm"><span className="font-medium">Usuario:</span> {usuario.nombreUsuario}</p>
+            <p className="text-sm text-muted-foreground">
+              Para actualizar tu información, contacta al administrador
+            </p>
           </CardContent>
         </Card>
       </div>

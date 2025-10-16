@@ -17,6 +17,8 @@ export interface UsuarioInfo {
   nombreCompleto: string;
   roles: RolInfo[];
   rolPrincipal: string;
+  idCliente?: number;
+  idTecnico?: number;
 }
 
 export interface LoginResponse {

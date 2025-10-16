@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
     title: "Reparaciones",
     url: "/reparaciones",
     icon: Wrench,
-    roles: ["Administrador", "Recepcionista", "Tecnico", "Cliente"],
+    roles: ["Administrador", "Recepcionista", "Tecnico"],
   },
   /*{
     title: "Inventario",
