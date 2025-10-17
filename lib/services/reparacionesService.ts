@@ -11,7 +11,7 @@ export interface ReparacionDetallada {
   fechaFinOrden: string | null;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/ttOrdenTrabajo";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttOrdenTrabajo";
 
 /**
  * Obtiene todas las reparaciones detalladas (con cliente, vehículo y estado)

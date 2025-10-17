@@ -1,6 +1,6 @@
 // /lib/api.ts
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1";
 
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;

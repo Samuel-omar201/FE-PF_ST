@@ -33,8 +33,8 @@ export interface ActualizarVehiculoData extends CrearVehiculoData {
   estadoRegistro?: string;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/ttVehiculo";
-const CLIENTES_URL = "http://localhost:8090/service/Autex_M1/ttCliente";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttVehiculo";
+const CLIENTES_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttCliente";
 
 /**
  * Obtiene todos los vehículos con información del cliente

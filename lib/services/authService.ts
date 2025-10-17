@@ -28,7 +28,7 @@ export interface LoginResponse {
   usuario?: UsuarioInfo;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/auth";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/auth";
 
 /**
  * Inicia sesión con correo y contraseña

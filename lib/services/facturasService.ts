@@ -16,7 +16,7 @@ export interface FacturaDetallada {
   estadoOrden: string | null;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/ttFactura";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttFactura";
 
 /**
  * Obtiene todas las facturas con información detallada

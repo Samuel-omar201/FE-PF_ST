@@ -35,7 +35,7 @@ export interface CrearUsuarioResponse {
   nombreUsuario?: string;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/ttUsuario";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttUsuario";
 
 /**
  * Crea un nuevo usuario (Cliente o Técnico)

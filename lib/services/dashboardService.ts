@@ -35,7 +35,7 @@ export interface HistorialServicio {
   monto: number;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1";
 
 /**
  * Obtiene estadísticas generales para el dashboard de administrador
@@ -262,8 +262,12 @@ function calcularProgreso(estado: string): number {
   const estadoLower = estado?.toLowerCase() || "";
   
   if (estadoLower.includes("completado")) return 100;
-  if (estadoLower.includes("proceso")) return 60;
-  if (estadoLower.includes("pendiente")) return 20;
+  if (estadoLower.includes("cancelada")) return 100;
+  if (estadoLower.includes("entregado")) return 100;
+  if (estadoLower.includes("finalizado")) return 90;
+  if (estadoLower.includes("Pendiente")) return 20;
+  if (estadoLower.includes("ejecucion")) return 30;
+  if (estadoLower.includes("ingresada")) return 30;
   
   return 0;
 }
