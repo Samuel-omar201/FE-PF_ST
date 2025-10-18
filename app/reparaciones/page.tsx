@@ -6,7 +6,8 @@ import {
   eliminarReparacion,
   ReparacionDetallada,
 } from "@/lib/services/reparacionesService";
-import { SeguimientoDrawer } from "@/components/seguimientoDrawer";
+///import { SeguimientoDrawer } from "@/components/seguimientoDrawer";
+import { SeguimientoDrawer } from "@/components/SeguimientoDrawer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
