@@ -23,8 +23,8 @@ export interface CrearSeguimientoData {
   notasTecnicas?: string;
 }
 
-const BASE_URL = "http://localhost:8090/service/Autex_M1/ttSeguimientoTrabajo";
-const ESTADOS_URL = "http://localhost:8090/service/Autex_M1/estado-seguimiento";
+const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttSeguimientoTrabajo";
+const ESTADOS_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/estado-seguimiento";
 
 /**
  * Obtiene los seguimientos de una orden de trabajo específica
