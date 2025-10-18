@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Clock, User, Car, Plus, Trash2, Eye } from "lucide-react";
+import { Clock, User, Car, Plus, Trash2, Eye, Edit } from "lucide-react";
 
 const estadoColors: Record<string, string> = {
   completado: "bg-green-500/10 text-green-500 border-green-500/20",
