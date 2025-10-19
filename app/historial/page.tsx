@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Download, FileText, DollarSign, Calendar } from "lucide-react";
+import { Search, Download, FileText, DollarSign, Calendar, CoinsIcon } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const estadoColors = {
@@ -94,10 +94,6 @@ export default function HistorialPage() {
       <header className="sticky top-0 z-10 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between px-6">
           <h1 className="text-2xl font-bold">Historial de Servicios</h1>
-          <Button onClick={exportarReporte}>
-            <Download className="mr-2 h-4 w-4" />
-            Exportar Reporte
-          </Button>
         </div>
       </header>
 
@@ -110,8 +106,8 @@ export default function HistorialPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-green-500" />
-                <div className="text-2xl font-bold">${totalFacturado.toFixed(2)}</div>
+                <CoinsIcon className="h-5 w-5 text-green-500" />
+                <div className="text-2xl font-bold">{totalFacturado.toFixed(2)} Q</div>
               </div>
               <p className="text-xs text-muted-foreground">Facturas activas</p>
             </CardContent>
@@ -150,7 +146,7 @@ export default function HistorialPage() {
             <CardContent>
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-primary" />
-                <div className="text-2xl font-bold">${ticketPromedio.toFixed(2)}</div>
+                <div className="text-2xl font-bold">{ticketPromedio.toFixed(2)} Q</div>
               </div>
               <p className="text-xs text-muted-foreground">Por factura</p>
             </CardContent>
@@ -243,7 +239,7 @@ export default function HistorialPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-right font-semibold">
-                        ${(factura.totalFactura || 0).toFixed(2)}
+                        {(factura.totalFactura || 0).toFixed(2)} Q
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">

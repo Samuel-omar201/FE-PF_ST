@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import {
   getReparacionesDetalladas,
   eliminarReparacion,
+  actualizarReparacion,
   ReparacionDetallada,
 } from "@/lib/services/reparacionesService";
-///import { SeguimientoDrawer } from "@/components/seguimientoDrawer";
 import { SeguimientoDrawer } from "@/components/SeguimientoDrawer";
+import { EditarReparacionDialog } from "@/components/EditarReparacionDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,9 +33,12 @@ const calcularProgreso = (estado: string | null): number => {
   if (!estado) return 0;
   const estadoLower = estado.toLowerCase();
   
-  if (estadoLower.includes("completado")) return 100;
-  if (estadoLower.includes("proceso")) return 60;
-  if (estadoLower.includes("pendiente")) return 20;
+  if (estadoLower.includes("creada")) return 10;
+  if (estadoLower.includes("proceso")) return 30;
+  if (estadoLower.includes("espera")) return 60;
+  if (estadoLower.includes("completada")) return 90;
+  if (estadoLower.includes("entregada")) return 100;
+  if (estadoLower.includes("cancelada")) return 100;
   return 0;
 };
 
@@ -54,6 +58,10 @@ export default function ReparacionesPage() {
   // Estados para el drawer de seguimiento
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [reparacionSeleccionada, setReparacionSeleccionada] = useState<ReparacionDetallada | null>(null);
+
+  // Estados para el diálogo de edición
+  const [dialogEditOpen, setDialogEditOpen] = useState(false);
+  const [reparacionEditar, setReparacionEditar] = useState<ReparacionDetallada | null>(null);
 
   useEffect(() => {
     cargarDatos();
@@ -103,6 +111,30 @@ export default function ReparacionesPage() {
     setDrawerOpen(true);
   };
 
+  const handleEditar = (reparacion: ReparacionDetallada) => {
+    console.log("✏️ Editando reparación:", reparacion.idOrdenTrabajo);
+    setReparacionEditar(reparacion);
+    setDialogEditOpen(true);
+  };
+
+  const handleGuardarEdicion = async (datosActualizados: Partial<ReparacionDetallada>) => {
+    if (!datosActualizados.idOrdenTrabajo) {
+      alert("❌ Error: ID de orden no encontrado");
+      return;
+    }
+
+    try {
+      await actualizarReparacion(datosActualizados.idOrdenTrabajo, datosActualizados);
+      alert("✅ Reparación actualizada correctamente");
+      
+      // Recargar datos
+      await cargarDatos();
+    } catch (error) {
+      console.error("Error al actualizar:", error);
+      throw error;
+    }
+  };
+
   // Cálculos de estadísticas
   const totalActivas = reparaciones.filter(
     (r) => r.estadoOrden?.toLowerCase() !== "completado"
@@ -134,10 +166,6 @@ export default function ReparacionesPage() {
             <div className="flex gap-2">
               <Button variant="outline" onClick={cargarDatos}>
                 🔄 Recargar
-              </Button>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Reparación
               </Button>
             </div>
           </div>
@@ -252,12 +280,13 @@ export default function ReparacionesPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             Ver Detalles
                           </Button>
-                          <Button
-                            variant="destructive"
+                          <Button 
+                            variant="outline" 
                             size="sm"
-                            onClick={() => handleEliminar(reparacion.idOrdenTrabajo)}
+                            onClick={() => handleEditar(reparacion)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
                           </Button>
                         </div>
                       </div>
@@ -275,7 +304,7 @@ export default function ReparacionesPage() {
                           <div className="flex items-center gap-2 text-sm">
                             <span className="text-muted-foreground">Costo:</span>
                             <span className="font-medium text-green-600">
-                              ${reparacion.costoFinal || "0.00"}
+                              {reparacion.costoFinal || "0.00"} Q
                             </span>
                           </div>
                         </div>
@@ -329,6 +358,14 @@ export default function ReparacionesPage() {
           vehiculoDescripcion={reparacionSeleccionada.vehiculoDescripcion || "Vehículo sin descripción"}
         />
       )}
+
+      {/* Diálogo de Edición */}
+      <EditarReparacionDialog
+        open={dialogEditOpen}
+        onOpenChange={setDialogEditOpen}
+        reparacion={reparacionEditar}
+        onGuardar={handleGuardarEdicion}
+      />
     </>
   );
 }

@@ -1,3 +1,5 @@
+// reparacionesService.ts - Archivo completo actualizado
+
 export interface ReparacionDetallada {
   idOrdenTrabajo: number;
   descripcionOrden: string;
@@ -9,6 +11,10 @@ export interface ReparacionDetallada {
   estadoOrden: string | null;
   fechaInicioOrden: string | null;
   fechaFinOrden: string | null;
+  // Campos adicionales necesarios para la actualización
+  tcEstadoOrdenTrabajoIdEstadoOrdenTrabajo?: number;
+  ttClienteIdCliente?: number;
+  ttVehiculoIdVehiculo?: number;
 }
 
 const BASE_URL = "https://be-pfst-production.up.railway.app/service/Autex_M1/ttOrdenTrabajo";
@@ -81,6 +87,52 @@ export async function eliminarReparacion(idOrdenTrabajo: number): Promise<void> 
     
   } catch (error) {
     console.error("💥 Error eliminando reparación:", error);
+    throw error;
+  }
+}
+
+/**
+ * Actualiza una reparación existente
+ */
+export async function actualizarReparacion(
+  idOrden: number,
+  datosActualizados: Partial<ReparacionDetallada>
+): Promise<any> {
+  try {
+    console.log("📤 Actualizando reparación:", idOrden, datosActualizados);
+
+    // Construir el objeto según el formato esperado por el backend
+    const payload = {
+      idOrdenTrabajo: idOrden,
+      descripcionOrden: datosActualizados.descripcionOrden,
+      costoFinal: datosActualizados.costoFinal,
+      fechaInicioOrden: datosActualizados.fechaInicioOrden,
+      fechaFinOrden: datosActualizados.fechaFinOrden,
+      tcEstadoOrdenTrabajoIdEstadoOrdenTrabajo: datosActualizados.tcEstadoOrdenTrabajoIdEstadoOrdenTrabajo,
+      ttClienteIdCliente: datosActualizados.ttClienteIdCliente,
+      ttVehiculoIdVehiculo: datosActualizados.ttVehiculoIdVehiculo,
+      estadoRegistro: "1", // Mantener activo
+    };
+
+    const response = await fetch(`${BASE_URL}/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("✅ Reparación actualizada:", data);
+
+    return data;
+  } catch (error) {
+    console.error("💥 Error en actualizarReparacion:", error);
     throw error;
   }
 }
